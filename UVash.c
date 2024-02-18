@@ -9,8 +9,8 @@
 #define MAX_COMMANDS 1000
 
 struct command {
-  char **arg_array;
   size_t num_argumentos;
+  char **arg_array;
 };
 
 char error_message[30] = "An error has occurred\n";
@@ -21,8 +21,7 @@ void printError() {
 }
 
 struct command separarComando(char *buff) {
-  struct command comando =
-      (struct command){(char **)calloc(MAX_ARGUMENTS + 1, sizeof(char *)), 0};
+  struct command comando = (struct command){0, (char **)calloc(MAX_ARGUMENTS, sizeof(char *))};
   char *ptr = buff;
   while ((ptr = strsep(&buff, " \t\n")) != NULL) {
     if (*ptr == '\0')
@@ -32,24 +31,21 @@ struct command separarComando(char *buff) {
     else
       printError();
   }
-  // Resizear el array de cosas
-  comando.arg_array = (char **)realloc(
-      comando.arg_array, (comando.num_argumentos + 1) * sizeof(char *));
+  // Resizear el array de argumentos
+  comando.arg_array = (char **)realloc(comando.arg_array, (comando.num_argumentos) * sizeof(char *));
   if (comando.arg_array == NULL) {
     printError();
-    exit(EXIT_FAILURE);
+    exit(1);
   }
   return comando;
 }
 
-char **separarString(char *buff, char delimiter, size_t limit) {
-  char delim[2] = {delimiter, '\0'};
-
+char **separarString(char *buff, char *delimiter, size_t *size, size_t limit) {
   // separar entrada por caracter separador y limite
-  char **comandos = (char **)calloc(limit + 1, sizeof(char *));
+  char **comandos = (char **)calloc(limit, sizeof(char *));
   char *ptr = buff;
   size_t num_comandos = 0;
-  while ((ptr = strsep(&buff, delim)) != NULL) {
+  while ((ptr = strsep(&buff, delimiter)) != NULL) {
     if (*ptr == '\0')
       continue;
     if (num_comandos < limit)
@@ -58,95 +54,77 @@ char **separarString(char *buff, char delimiter, size_t limit) {
       printError();
   }
   // Resizear el array de comandos
-  comandos = (char **)realloc(comandos, (num_comandos + 1) * sizeof(char *));
+  comandos = (char **)realloc(comandos, (num_comandos) * sizeof(char *));
   if (comandos == NULL) {
     printError();
-    exit(EXIT_FAILURE);
+    exit(1);
   }
+  *size = num_comandos;
   return comandos;
 }
 
 void printCommand(struct command *cmd) {
   printf("Number of arguments: %zu\n", cmd->num_argumentos);
-  printf("Arguments:\n");
-  for (size_t i = 0; i < cmd->num_argumentos; ++i) {
+  for (size_t i = 0; i < cmd->num_argumentos; i++)
     printf("[%zu]: %s\n", i, cmd->arg_array[i]);
-  }
-  printf("\n");
 }
 
 int main(int argc, char **args) {
-  if (argc <= 1) {
-  }
 
   while (1) {
-    fprintf(stdout, "UVash%s> ", "\xE2\x98\xBA");
-    fflush(stdout);
+    fprintf(stdout, "UVash> ");
     // Lectura de comando de entrada
     char *buff;
-    size_t size = 0;
-    if (getline(&buff, &size, stdin) == -1) {
-      printf("Error reading input\n");
-      exit(1);
+    size_t input_size = 0;
+    if (getline(&buff, &input_size, stdin) == -1) {
+      printError();
+      continue;
     }
 
     // Separar comandos paralelos
-    struct command **comandos = (struct command **)calloc(
-        MAX_PARALLEL_COMMANDS, sizeof(struct command *));
-    char **comandos_paralelos = separarString(buff, '&', MAX_PARALLEL_COMMANDS);
     size_t num_parallel_commands = 0;
-    while (comandos_paralelos[num_parallel_commands] != NULL) {
-      // Separar comandos internos por ;
-      struct command *command_array =
-          (struct command *)calloc(MAX_COMMANDS, sizeof(struct command));
-      char *ptr = comandos_paralelos[num_parallel_commands];
-      char *comando;
-      size_t num_commands = 0;
-      while ((comando = strsep(&ptr, ";")) != NULL) {
-        if (*comando == '\0')
-          continue;
-        command_array[num_commands++] = separarComando(comando);
-      }
-      comandos[num_parallel_commands++] = command_array;
+    char **comandos_paralelos = separarString(buff, "&\n", &num_parallel_commands, MAX_PARALLEL_COMMANDS);
+    struct command **comandos = (struct command **)calloc(num_parallel_commands, sizeof(struct command *));
+
+    // Construir tensor de comandos
+    for (size_t i = 0; i < num_parallel_commands; i++) {
+      size_t num_comandos_internos = 0;
+      char **comandos_internos = separarString(comandos_paralelos[i], ";\n", &num_comandos_internos, MAX_COMMANDS);
+      comandos[i] = (struct command *)calloc(num_comandos_internos + 1, sizeof(struct command));
+      for (size_t j = 0; j < num_comandos_internos; j++)
+        comandos[i][j] = separarComando(comandos_internos[j]);
+      free(comandos_internos);
     }
-    comandos = (struct command **)realloc(
-        comandos, (num_parallel_commands + 1) * sizeof(struct command *));
     free(comandos_paralelos);
-    for (size_t i = 0; i < num_parallel_commands; ++i) {
-      printf("Command set %zu:\n", i + 1);
-      struct command *cmds = comandos[i];
-      size_t j = 0;
-      while (cmds[j].num_argumentos != 0) {
-        printCommand(&cmds[j++]);
-      }
+    // DEBUG
+    for (size_t i = 0; i < num_parallel_commands; i++) {
+      printf("Commando paralelo %zu:\n", i + 1);
+      for (struct command *cmd = comandos[i]; cmd->num_argumentos != 0;)
+        printCommand(cmd++);
     }
+    free(comandos);
+    free(buff);
+
+    // Ejecutar comando/s
 
     // Comprobar si el usuario quiere salir del shell
     /*if (strcmp(arg_array[0], "exit") == 0) {
-      if (num_argumentos <= 1) {
-        exit(0);
-      } else {
-        printError();
-        continue;
-      }
+            if (num_argumentos <= 1) {
+                    exit(0);
+            } else {
+                    printError();
+                    continue;
+            }
     }
 
     // Comprobar si el usuario pone un cd
     if (strcmp(arg_array[0], "cd") == 0) {
-      if (num_argumentos != 2 || chdir(arg_array[1]) != 0) {
-        printError();
-        continue;
-      }
+            if (num_argumentos != 2 || chdir(arg_array[1]) != 0) {
+                    printError();
+                    continue;
+            }
     }
-
-    for (int i = 0; i < num_argumentos; i++) {
-      printf("%s\n", arg_array[i]);
-      fflush(stdout);
-    }
-    // Ejecutar comando/s
-
-    // Liberar memoria de argumentos
-    free(arg_array);*/
+    */
   }
   return 0;
 }
