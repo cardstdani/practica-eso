@@ -11,6 +11,7 @@
 struct command {
   size_t num_argumentos;
   char **arg_array;
+  char *path;
 };
 
 char error_message[30] = "An error has occurred\n";
@@ -21,9 +22,20 @@ void printError() {
 }
 
 struct command separarComando(char *buff) {
-  struct command comando = (struct command){0, (char **)calloc(MAX_ARGUMENTS, sizeof(char *))};
+  struct command comando = (struct command){0, (char **)calloc(MAX_ARGUMENTS, sizeof(char *)), NULL};
   char *ptr = buff;
-  while ((ptr = strsep(&buff, " \t\n")) != NULL) {
+  char *path_ptr = buff;
+  while ((path_ptr = strsep(&buff, ">\n")) != NULL) { // Separar redireccion
+    if (*path_ptr == '\0')
+      continue;
+    if (comando.num_argumentos++ == 1)
+      comando.path = path_ptr;
+    else if (comando.num_argumentos > 1)
+      printError();
+  }
+  comando.num_argumentos = 0;
+  buff = ptr;
+  while ((ptr = strsep(&buff, " \t\n")) != NULL) { // Separar argumentos
     if (*ptr == '\0')
       continue;
     if (comando.num_argumentos < MAX_ARGUMENTS)
@@ -54,7 +66,7 @@ char **separarString(char *buff, char *delimiter, size_t *size, size_t limit) {
       printError();
   }
   // Resizear el array de comandos
-  comandos = (char **)realloc(comandos, (num_comandos) * sizeof(char *));
+  comandos = (char **)realloc(comandos, num_comandos * sizeof(char *));
   if (comandos == NULL) {
     printError();
     exit(1);
@@ -64,7 +76,7 @@ char **separarString(char *buff, char *delimiter, size_t *size, size_t limit) {
 }
 
 void printCommand(struct command *cmd) {
-  printf("Number of arguments: %zu\n", cmd->num_argumentos);
+  printf("Number of arguments: %zu\nPath:%s\n", cmd->num_argumentos, cmd->path);
   for (size_t i = 0; i < cmd->num_argumentos; i++)
     printf("[%zu]: %s\n", i, cmd->arg_array[i]);
 }
@@ -80,11 +92,13 @@ int main(int argc, char **args) {
       printError();
       continue;
     }
+    if (buff[0] == '\n') // Continuar si no hay nada escrito
+      continue;
 
     // Separar comandos paralelos
     size_t num_parallel_commands = 0;
     char **comandos_paralelos = separarString(buff, "&\n", &num_parallel_commands, MAX_PARALLEL_COMMANDS);
-    struct command **comandos = (struct command **)calloc(num_parallel_commands, sizeof(struct command *));
+    struct command *comandos[num_parallel_commands];
 
     // Construir tensor de comandos
     for (size_t i = 0; i < num_parallel_commands; i++) {
@@ -102,7 +116,6 @@ int main(int argc, char **args) {
       for (struct command *cmd = comandos[i]; cmd->num_argumentos != 0;)
         printCommand(cmd++);
     }
-    free(comandos);
     free(buff);
 
     // Ejecutar comando/s
