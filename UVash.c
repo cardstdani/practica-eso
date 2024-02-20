@@ -25,13 +25,11 @@ struct command separarComando(char *buff) {
   struct command comando = (struct command){0, (char **)calloc(MAX_ARGUMENTS, sizeof(char *)), NULL};
   char *ptr = buff;
   char *path_ptr = buff;
-  while ((path_ptr = strsep(&buff, ">\n")) != NULL) { // Separar redireccion
-    if (*path_ptr == '\0')
-      continue;
+  while ((path_ptr = strsep(&buff, ">")) != NULL) { // Separar redireccion
+    if (comando.num_argumentos > 1 || *path_ptr == '\0')
+      printError();
     if (comando.num_argumentos++ == 1)
       comando.path = path_ptr;
-    else if (comando.num_argumentos > 1)
-      printError();
   }
   comando.num_argumentos = 0;
   buff = ptr;
@@ -81,6 +79,31 @@ void printCommand(struct command *cmd) {
     printf("[%zu]: %s\n", i, cmd->arg_array[i]);
 }
 
+void cleanCommand(struct command *cmd) {
+  for (size_t i = 0; i < cmd->num_argumentos; i++)
+    free(cmd->arg_array[i]);
+  free(cmd->arg_array);
+  if (cmd->path != NULL)
+    free(cmd->path);
+  cmd->num_argumentos = 0;
+  cmd->path = NULL;
+}
+
+void ejecutarComando(struct command *cmd) {
+  printCommand(cmd);
+  // Comprobar si el usuario quiere salir del shell
+  if (strcmp(cmd->arg_array[0], "exit") == 0) {
+    if (cmd->num_argumentos <= 1)
+      exit(0);
+    else
+      printError();
+  }
+
+  // Comprobar si el usuario pone un cd
+  if (strcmp(cmd->arg_array[0], "cd") == 0 && (cmd->num_argumentos != 2 || chdir(cmd->arg_array[1]) != 0))
+    printError();
+}
+
 int main(int argc, char **args) {
 
   while (1) {
@@ -110,34 +133,15 @@ int main(int argc, char **args) {
       free(comandos_internos);
     }
     free(comandos_paralelos);
-    // DEBUG
+
+    // Ejecutar comandos
     for (size_t i = 0; i < num_parallel_commands; i++) {
-      printf("Commando paralelo %zu:\n", i + 1);
-      for (struct command *cmd = comandos[i]; cmd->num_argumentos != 0;)
-        printCommand(cmd++);
+      for (struct command *cmd = comandos[i]; cmd->num_argumentos != 0; cmd++) {
+        ejecutarComando(cmd);
+        // cleanCommand(cmd);
+      }
+      free(comandos[i]);
     }
-    free(buff);
-
-    // Ejecutar comando/s
-
-    // Comprobar si el usuario quiere salir del shell
-    /*if (strcmp(arg_array[0], "exit") == 0) {
-            if (num_argumentos <= 1) {
-                    exit(0);
-            } else {
-                    printError();
-                    continue;
-            }
-    }
-
-    // Comprobar si el usuario pone un cd
-    if (strcmp(arg_array[0], "cd") == 0) {
-            if (num_argumentos != 2 || chdir(arg_array[1]) != 0) {
-                    printError();
-                    continue;
-            }
-    }
-    */
   }
   return 0;
 }
