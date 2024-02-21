@@ -42,7 +42,7 @@ struct command separarComando(char *buff) {
       printError();
   }
   // Resizear el array de argumentos
-  comando.arg_array = (char **)realloc(comando.arg_array, (comando.num_argumentos) * sizeof(char *));
+  comando.arg_array = (char **)realloc(comando.arg_array, comando.num_argumentos * sizeof(char *));
   if (comando.arg_array == NULL) {
     printError();
     exit(1);
@@ -80,11 +80,7 @@ void printCommand(struct command *cmd) {
 }
 
 void cleanCommand(struct command *cmd) {
-  for (size_t i = 0; i < cmd->num_argumentos; i++)
-    free(cmd->arg_array[i]);
   free(cmd->arg_array);
-  if (cmd->path != NULL)
-    free(cmd->path);
   cmd->num_argumentos = 0;
   cmd->path = NULL;
 }
@@ -102,21 +98,23 @@ void ejecutarComando(struct command *cmd) {
   // Comprobar si el usuario pone un cd
   if (strcmp(cmd->arg_array[0], "cd") == 0 && (cmd->num_argumentos != 2 || chdir(cmd->arg_array[1]) != 0))
     printError();
+  cleanCommand(cmd);
 }
 
 int main(int argc, char **args) {
-
   while (1) {
     fprintf(stdout, "UVash> ");
     // Lectura de comando de entrada
-    char *buff;
+    char *buff = NULL;
     size_t input_size = 0;
     if (getline(&buff, &input_size, stdin) == -1) {
       printError();
       continue;
     }
-    if (buff[0] == '\n') // Continuar si no hay nada escrito
+    if (buff[0] == '\n') { // Continuar si no hay nada escrito
+      free(buff);
       continue;
+    }
 
     // Separar comandos paralelos
     size_t num_parallel_commands = 0;
@@ -136,12 +134,11 @@ int main(int argc, char **args) {
 
     // Ejecutar comandos
     for (size_t i = 0; i < num_parallel_commands; i++) {
-      for (struct command *cmd = comandos[i]; cmd->num_argumentos != 0; cmd++) {
+      for (struct command *cmd = comandos[i]; cmd->num_argumentos != 0; cmd++)
         ejecutarComando(cmd);
-        // cleanCommand(cmd);
-      }
       free(comandos[i]);
     }
+    free(buff);
   }
   return 0;
 }
