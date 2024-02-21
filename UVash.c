@@ -14,7 +14,7 @@ struct command {
   char *path;
 };
 
-char error_message[30] = "An error has occurred\n";
+const char error_message[30] = "An error has occurred\n";
 
 void printError() {
   fprintf(stderr, "%s", error_message);
@@ -87,7 +87,7 @@ void cleanCommand(struct command *cmd) {
 
 void ejecutarComando(struct command *cmd) {
   printCommand(cmd);
-  // Comprobar si el usuario quiere salir del shell
+  // Comprobar si el usuario quiere salir del shell (obviamente no va a querer, el shell es demasiado bueno)
   if (strcmp(cmd->arg_array[0], "exit") == 0) {
     if (cmd->num_argumentos <= 1)
       exit(0);

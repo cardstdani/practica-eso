@@ -27,7 +27,7 @@ int main(int argc, char **args) {
       if (ret != 1)
         break;
 
-      for (int j = 0; j < occurences; j++)
+      for (; occurences > 0; occurences--)
         fprintf(stdout, "%c", character);
     }
   }
