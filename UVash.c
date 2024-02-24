@@ -9,7 +9,7 @@
 #define MAX_COMMANDS 1000
 
 struct command {
-  size_t num_argumentos;
+  ssize_t num_argumentos;
   char **arg_array;
   char *path;
 };
@@ -28,9 +28,8 @@ void cleanCommand(struct command *cmd) {
   cmd->path = NULL;
 }
 
-void freeMemory(char *buff, char **comandos_paralelos, struct command *comandos[], size_t num_parallel_commands) {
+void freeMemory(char **comandos_paralelos, struct command *comandos[], size_t num_parallel_commands) {
   free(comandos_paralelos);
-  buff++;
   for (size_t i = 0; i < num_parallel_commands; i++) {
     for (struct command *cmd = comandos[i]; cmd->num_argumentos != 0; cmd++)
       cleanCommand(cmd);
@@ -39,7 +38,7 @@ void freeMemory(char *buff, char **comandos_paralelos, struct command *comandos[
 }
 
 struct command separarComando(char *buff) {
-  struct command comando = (struct command){0, (char **)calloc(MAX_ARGUMENTS, sizeof(char *)), NULL};
+  struct command comando = (struct command){0, (char **)calloc(MAX_ARGUMENTS + 1, sizeof(char *)), NULL};
   char *ptr = buff;
   char *path_ptr = buff;
   while ((path_ptr = strsep(&buff, ">")) != NULL) { // Separar redireccion
@@ -50,9 +49,32 @@ struct command separarComando(char *buff) {
     if (comando.num_argumentos++ == 1)
       comando.path = path_ptr;
   }
+  // Comprobar que el archivo de redireccion es unico
+  if (comando.path != NULL) {
+    enum errorType valid = ERROR;
+    comando.num_argumentos = 0;
+    path_ptr = buff = comando.path;
+    while ((path_ptr = strsep(&buff, " \t\n")) != NULL) {
+      if (*path_ptr == '\0')
+        continue;
+      if (comando.num_argumentos++ >= 1) {
+        cleanCommand(&comando);
+        return nullCommand;
+      } else {
+        comando.path = path_ptr;
+        valid = NO_ERROR;
+      }
+    }
+    // Comprobar que el path no este vacio
+    if (valid == ERROR) {
+      cleanCommand(&comando);
+      return nullCommand;
+    }
+  }
+  // Separar argumentos
   comando.num_argumentos = 0;
   buff = ptr;
-  while ((ptr = strsep(&buff, " \t\n")) != NULL) { // Separar argumentos
+  while ((ptr = strsep(&buff, " \t\n")) != NULL) {
     if (*ptr == '\0')
       continue;
     if (comando.num_argumentos < MAX_ARGUMENTS)
@@ -64,10 +86,12 @@ struct command separarComando(char *buff) {
   }
 
   // Comprobar si el comando separado es valido y Resizear el array de argumentos
-  if (comando.num_argumentos == 0 || (comando.arg_array = (char **)realloc(comando.arg_array, comando.num_argumentos * sizeof(char *))) == NULL) {
+  if ((comando.arg_array = (char **)realloc(comando.arg_array, (comando.num_argumentos + 1) * sizeof(char *))) == NULL) {
     cleanCommand(&comando);
     return nullCommand;
   }
+  if (comando.num_argumentos == 0)
+    comando.num_argumentos = -1;
   return comando;
 }
 
@@ -112,18 +136,22 @@ enum errorType ejecutarComando(struct command *cmd) {
   if (strcmp(cmd->arg_array[0], "cd") == 0)
     return (cmd->num_argumentos != 2 || chdir(cmd->arg_array[1]) != 0) ? ERROR : NO_ERROR;
 
+  // Redireccionar si es necesario
+  FILE *fp = NULL;
+  if (cmd->path != NULL)
+    fp = fopen(cmd->path, "w");
+
   // Ejecutar comando
   int estado;
   pid_t pid = fork();
   if (pid == 0) {
+    if (cmd->path != NULL && (fp == NULL || dup2(fileno(fp), 1) == -1 || dup2(fileno(fp), 2) == -1))
+      return ERROR;
     estado = execvp(cmd->arg_array[0], cmd->arg_array);
     if (estado == -1)
       return ERROR;
-  } else if (pid > 0) {
-    wait(NULL);
-  } else
+  } else if (pid < 0)
     return ERROR;
-  cleanCommand(cmd);
   return NO_ERROR;
 }
 
@@ -145,7 +173,7 @@ enum errorType procesarEntrada(char *buff) { // Que mal queda el tipo enum noseq
       comandos[i][j] = separarComando(comandos_internos[j]);
       if (comandos[i][j].num_argumentos == 0) { // Error al separar comando
         free(comandos_internos);
-        freeMemory(buff, comandos_paralelos, comandos, i + 1);
+        freeMemory(comandos_paralelos, comandos, i + 1);
         return ERROR;
       }
     }
@@ -155,17 +183,20 @@ enum errorType procesarEntrada(char *buff) { // Que mal queda el tipo enum noseq
   // Ejecutar comandos
   for (size_t i = 0; i < num_parallel_commands; i++)
     for (struct command *cmd = comandos[i]; cmd->num_argumentos != 0; cmd++)
-      if (ejecutarComando(cmd) == ERROR) {
-        freeMemory(buff, comandos_paralelos, comandos, num_parallel_commands);
-        return ERROR;
-      }
+      if (cmd->num_argumentos != -1)
+        if (ejecutarComando(cmd) == ERROR) {
+          freeMemory(comandos_paralelos, comandos, num_parallel_commands);
+          return ERROR;
+        }
   for (size_t i = 0; i < num_parallel_commands; i++)
     wait(NULL);
-  freeMemory(buff, comandos_paralelos, comandos, num_parallel_commands);
+  freeMemory(comandos_paralelos, comandos, num_parallel_commands);
   return NO_ERROR;
 }
 
 int main(int argc, char **args) {
+  char *buff = NULL;
+  size_t input_size = 0;
   if (argc == 2) { // Modo bash
     FILE *fp = fopen(args[1], "r");
     if (fp == NULL) {
@@ -173,37 +204,38 @@ int main(int argc, char **args) {
       exit(1);
     }
 
-    char *buff = NULL;
-    size_t input_size = 0;
     while (getline(&buff, &input_size, fp) != -1) {
-      if (buff[0] == '\n') { // Continuar si no hay nada escrito
-        free(buff);
+      if (buff[0] == '\n' || buff[0] == '\0') // Continuar si no hay nada escrito
         continue;
-      }
-
-      if (procesarEntrada(buff) == ERROR)
+      switch (procesarEntrada(buff)) {
+      case ERROR:
         printError();
+        break;
+      case NO_ERROR:
+        break;
+      }
     }
+    free(buff);
   } else if (argc == 1) { // Modo interactivo
     while (1) {
       fprintf(stdout, "UVash> ");
       // Lectura de comando de entrada
-      char *buff = NULL;
-      size_t input_size = 0;
       if (getline(&buff, &input_size, stdin) == -1) {
         printError();
-        continue;
-      }
-      if (buff[0] == '\n') { // Continuar si no hay nada escrito
         free(buff);
         continue;
       }
-
-      if (procesarEntrada(buff) == ERROR) {
-        printError();
+      if (buff[0] == '\n') // Continuar si no hay nada escrito
         continue;
+      switch (procesarEntrada(buff)) {
+      case ERROR:
+        printError();
+        break;
+      case NO_ERROR:
+        break;
       }
     }
+    free(buff);
   } else {
     printError();
     exit(1);

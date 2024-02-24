@@ -7,4 +7,5 @@ os.system(
 
 #TESTS
 os.system(
-    "cd /home/runner/practica-eso/laboratorio-eso/Practica2/; ./test-UVash.sh")
+    "cd /home/runner/practica-eso/laboratorio-eso/Practica2/; ./test-UVash.sh -c"
+)
