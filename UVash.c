@@ -7,6 +7,8 @@
 #define MAX_ARGUMENTS 1000
 #define MAX_PARALLEL_COMMANDS 1000
 #define MAX_COMMANDS 1000
+#include <readline/history.h>
+#include <readline/readline.h>
 
 struct command {
   ssize_t num_argumentos;
@@ -142,13 +144,11 @@ enum errorType ejecutarComando(struct command *cmd) {
     fp = fopen(cmd->path, "w");
 
   // Ejecutar comando
-  int estado;
   pid_t pid = fork();
   if (pid == 0) {
     if (cmd->path != NULL && (fp == NULL || dup2(fileno(fp), 1) == -1 || dup2(fileno(fp), 2) == -1))
       return ERROR;
-    estado = execvp(cmd->arg_array[0], cmd->arg_array);
-    if (estado == -1)
+    if (execvp(cmd->arg_array[0], cmd->arg_array) == -1)
       return ERROR;
   } else if (pid < 0)
     return ERROR;
@@ -218,15 +218,15 @@ int main(int argc, char **args) {
     free(buff);
   } else if (argc == 1) { // Modo interactivo
     while (1) {
-      fprintf(stdout, "UVash> ");
       // Lectura de comando de entrada
-      if (getline(&buff, &input_size, stdin) == -1) {
+      if (!(buff = readline("UVash> "))) {
         printError();
         free(buff);
         continue;
       }
       if (buff[0] == '\n') // Continuar si no hay nada escrito
         continue;
+      add_history(buff);
       switch (procesarEntrada(buff)) {
       case ERROR:
         printError();
@@ -234,8 +234,8 @@ int main(int argc, char **args) {
       case NO_ERROR:
         break;
       }
+      free(buff);
     }
-    free(buff);
   } else {
     printError();
     exit(1);
