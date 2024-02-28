@@ -148,8 +148,10 @@ enum errorType ejecutarComando(struct command *cmd) {
   if (pid == 0) {
     if (cmd->path != NULL && (fp == NULL || dup2(fileno(fp), 1) == -1 || dup2(fileno(fp), 2) == -1))
       return ERROR;
-    if (execvp(cmd->arg_array[0], cmd->arg_array) == -1)
+    if (execvp(cmd->arg_array[0], cmd->arg_array) == -1) {
+      exit(0);
       return ERROR;
+    }
   } else if (pid < 0)
     return ERROR;
   return NO_ERROR;
@@ -205,7 +207,7 @@ int main(int argc, char **args) {
     }
 
     while (getline(&buff, &input_size, fp) != -1) {
-      if (buff[0] == '\n' || buff[0] == '\0') // Continuar si no hay nada escrito
+      if (buff[0] == '\n') // Continuar si no hay nada escrito
         continue;
       switch (procesarEntrada(buff)) {
       case ERROR:
@@ -227,6 +229,7 @@ int main(int argc, char **args) {
       if (buff[0] == '\n') // Continuar si no hay nada escrito
         continue;
       add_history(buff);
+
       switch (procesarEntrada(buff)) {
       case ERROR:
         printError();
