@@ -30,7 +30,14 @@ void cleanCommand(struct command *cmd) {
   cmd->path = NULL;
 }
 
-void freeMemory(char **comandos_paralelos) { free(comandos_paralelos); }
+void freeMemory(char **comandos_paralelos, struct command *comandos[], size_t num_parallel_commands) {
+  free(comandos_paralelos);
+  for (size_t i = 0; i < num_parallel_commands; i++) {
+    for (struct command *cmd = comandos[i]; cmd->num_argumentos != 0; cmd++)
+      cleanCommand(cmd);
+    free(comandos[i]);
+  }
+}
 
 struct command separarComando(char *buff) {
   struct command comando = (struct command){0, (char **)calloc(MAX_ARGUMENTS + 1, sizeof(char *)), NULL};
@@ -158,25 +165,34 @@ enum errorType procesarEntrada(char *buff) { // Que mal queda el tipo enum noseq
     return ERROR;
 
   // Construir tensor de comandos
-  struct command comandos[num_parallel_commands];
+  struct command *comandos[num_parallel_commands];
   for (size_t i = 0; i < num_parallel_commands; i++) {
-    comandos[i] = separarComando(comandos_paralelos[i]);
-    if (comandos[i].num_argumentos == 0) { // Error al separar comando
-      freeMemory(comandos_paralelos);
-      return ERROR;
+    size_t num_comandos_internos = 0;
+    char **comandos_internos = separarString(comandos_paralelos[i], ";\n", &num_comandos_internos, MAX_COMMANDS);
+    // Construir comandos a partir de secuencia
+    comandos[i] = (struct command *)calloc(num_comandos_internos + 1, sizeof(struct command));
+    for (size_t j = 0; j < num_comandos_internos; j++) {
+      comandos[i][j] = separarComando(comandos_internos[j]);
+      if (comandos[i][j].num_argumentos == 0) { // Error al separar comando
+        free(comandos_internos);
+        freeMemory(comandos_paralelos, comandos, i + 1);
+        return ERROR;
+      }
     }
+    free(comandos_internos);
   }
 
   // Ejecutar comandos
   for (size_t i = 0; i < num_parallel_commands; i++)
-    if (comandos[i].num_argumentos != -1)
-      if (ejecutarComando(&comandos[i]) == ERROR) {
-        freeMemory(comandos_paralelos);
-        return ERROR;
-      }
+    for (struct command *cmd = comandos[i]; cmd->num_argumentos != 0; cmd++)
+      if (cmd->num_argumentos != -1)
+        if (ejecutarComando(cmd) == ERROR) {
+          freeMemory(comandos_paralelos, comandos, num_parallel_commands);
+          return ERROR;
+        }
   for (size_t i = 0; i < num_parallel_commands; i++)
     wait(NULL);
-  freeMemory(comandos_paralelos);
+  freeMemory(comandos_paralelos, comandos, num_parallel_commands);
   return NO_ERROR;
 }
 
