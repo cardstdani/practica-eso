@@ -1,14 +1,12 @@
 #define _GNU_SOURCE
+#define MAX_ARGUMENTS 1000
+#define MAX_PARALLEL_COMMANDS 1000
+#define MAX_COMMANDS 1000
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#define MAX_ARGUMENTS 1000
-#define MAX_PARALLEL_COMMANDS 1000
-#define MAX_COMMANDS 1000
-#include <readline/history.h>
-#include <readline/readline.h>
 
 struct command {
   ssize_t num_argumentos;
@@ -30,7 +28,11 @@ void cleanCommand(struct command *cmd) {
   cmd->path = NULL;
 }
 
-void freeMemory(char **comandos_paralelos) { free(comandos_paralelos); }
+void freeMemory(char **comandos_paralelos, struct command comandos[], size_t num_parallel_comands) {
+  free(comandos_paralelos);
+  for (size_t i = 0; i < num_parallel_comands; i++)
+    cleanCommand(&comandos[i]);
+}
 
 struct command separarComando(char *buff) {
   struct command comando = (struct command){0, (char **)calloc(MAX_ARGUMENTS + 1, sizeof(char *)), NULL};
@@ -162,7 +164,7 @@ enum errorType procesarEntrada(char *buff) { // Que mal queda el tipo enum noseq
   for (size_t i = 0; i < num_parallel_commands; i++) {
     comandos[i] = separarComando(comandos_paralelos[i]);
     if (comandos[i].num_argumentos == 0) { // Error al separar comando
-      freeMemory(comandos_paralelos);
+      freeMemory(comandos_paralelos, comandos, i + 1);
       return ERROR;
     }
   }
@@ -171,12 +173,12 @@ enum errorType procesarEntrada(char *buff) { // Que mal queda el tipo enum noseq
   for (size_t i = 0; i < num_parallel_commands; i++)
     if (comandos[i].num_argumentos != -1)
       if (ejecutarComando(&comandos[i]) == ERROR) {
-        freeMemory(comandos_paralelos);
+        freeMemory(comandos_paralelos, comandos, num_parallel_commands);
         return ERROR;
       }
   for (size_t i = 0; i < num_parallel_commands; i++)
     wait(NULL);
-  freeMemory(comandos_paralelos);
+  freeMemory(comandos_paralelos, comandos, num_parallel_commands);
   return NO_ERROR;
 }
 
@@ -204,17 +206,18 @@ int main(int argc, char **args) {
     free(buff);
   } else if (argc == 1) { // Modo interactivo
     while (1) {
+      fprintf(stdout, "UVash>");
+      fflush(stdout);
       // Lectura de comando de entrada
-      if (!(buff = readline("UVash> "))) {
+      if (getline(&buff, &input_size, stdin) == -1) {
         printError();
         free(buff);
         continue;
       }
-      if (buff[0] == '\0') { // Continuar si no hay nada escrito
+      if (buff[0] == '\n') { // Continuar si no hay nada escrito
         free(buff);
         continue;
       }
-      add_history(buff);
 
       switch (procesarEntrada(buff)) {
       case ERROR:
@@ -223,8 +226,8 @@ int main(int argc, char **args) {
       case NO_ERROR:
         break;
       }
-      free(buff);
     }
+    free(buff);
   } else {
     printError();
     exit(1);
