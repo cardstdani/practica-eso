@@ -1,7 +1,6 @@
 #define _GNU_SOURCE
 #define MAX_ARGUMENTS 1000
 #define MAX_PARALLEL_COMMANDS 1000
-#define MAX_COMMANDS 1000
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
