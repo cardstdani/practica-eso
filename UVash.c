@@ -120,7 +120,7 @@ char **separarString(char *buff, char *delimiter, size_t *size, size_t limit) {
 }
 
 enum errorType ejecutarComando(struct command *cmd) {
-  // Comprobar si el usuario quiere salir del shell (obviamente no va a querer, el shell es demasiado bueno)
+  // Comprobar si el usuario quiere salir del shell
   if (strcmp(cmd->arg_array[0], "exit") == 0) {
     if (cmd->num_argumentos <= 1)
       exit(0);
@@ -151,7 +151,7 @@ enum errorType ejecutarComando(struct command *cmd) {
   return NO_ERROR;
 }
 
-enum errorType procesarEntrada(char *buff) { // Que mal queda el tipo enum noseque, pero es facil de entender (despues)
+enum errorType procesarEntrada(char *buff) {
   // Separar comandos paralelos
   size_t num_parallel_commands = 0;
   char **comandos_paralelos = separarString(buff, "&\n", &num_parallel_commands, MAX_PARALLEL_COMMANDS);
