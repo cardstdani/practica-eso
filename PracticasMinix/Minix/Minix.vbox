@@ -6,7 +6,7 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.virtualbox.org/" version="1.19-windows">
-  <Machine uuid="{8e0555f0-eea2-485a-aa4c-3ae5be9c44b1}" name="Minix" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-04-03T14:59:35Z">
+  <Machine uuid="{8e0555f0-eea2-485a-aa4c-3ae5be9c44b1}" name="Minix" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-04-04T09:52:02Z">
     <MediaRegistry>
       <HardDisks>
         <HardDisk uuid="{5f388da3-949d-4be6-be01-f138c651b388}" location="C:/Users/danie/Desktop/practica-eso/PracticasMinix/minix2.0.0.vdi" format="VDI" type="Normal"/>
@@ -44,14 +44,14 @@
       </USB>
       <Network>
         <Adapter slot="0" enabled="true" MACAddress="080027DC3FAB">
-          <NAT/>
+          <NAT localhost-reachable="true"/>
         </Adapter>
       </Network>
       <AudioAdapter useDefault="true" driver="WAS" enabled="true" enabledOut="true"/>
       <Clipboard mode="Bidirectional"/>
       <DragAndDrop mode="Bidirectional"/>
       <GuestProperties>
-        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="es_ES" timestamp="1712155750058397200" flags="RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="es_ES" timestamp="1712224117964863300" flags="RDONLYGUEST"/>
       </GuestProperties>
       <StorageControllers>
         <StorageController name="IDE" type="PIIX4" PortCount="2" useHostIOCache="true" Bootable="true">
