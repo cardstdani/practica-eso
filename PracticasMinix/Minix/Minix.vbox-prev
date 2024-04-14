@@ -6,7 +6,7 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.virtualbox.org/" version="1.19-windows">
-  <Machine uuid="{8e0555f0-eea2-485a-aa4c-3ae5be9c44b1}" name="Minix" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-04-11T09:40:02Z">
+  <Machine uuid="{8e0555f0-eea2-485a-aa4c-3ae5be9c44b1}" name="Minix" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-04-14T06:32:49Z">
     <MediaRegistry>
       <HardDisks>
         <HardDisk uuid="{5f388da3-949d-4be6-be01-f138c651b388}" location="C:/Users/danie/Desktop/practica-eso/PracticasMinix/minix2.0.0.vdi" format="VDI" type="Normal"/>
@@ -17,7 +17,7 @@
     </MediaRegistry>
     <ExtraData>
       <ExtraDataItem name="GUI/LastCloseAction" value="PowerOff"/>
-      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="932,404,720,440"/>
+      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="1125,501,720,440"/>
     </ExtraData>
     <Hardware>
       <CPU>
@@ -51,10 +51,10 @@
       <Clipboard mode="Bidirectional"/>
       <DragAndDrop mode="Bidirectional"/>
       <GuestProperties>
-        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="es_ES" timestamp="1712829902503764300" flags="RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxRev" value="161095" timestamp="1712828402989228402" flags="TRANSIENT, RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxVer" value="7.0.14" timestamp="1712828402989228400" flags="TRANSIENT, RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxVerExt" value="7.0.14" timestamp="1712828402989228401" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="es_ES" timestamp="1713076372208692600" flags="RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/VBoxRev" value="161095" timestamp="1713076369384548402" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/VBoxVer" value="7.0.14" timestamp="1713076369384548400" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/VBoxVerExt" value="7.0.14" timestamp="1713076369384548401" flags="TRANSIENT, RDONLYGUEST"/>
       </GuestProperties>
       <StorageControllers>
         <StorageController name="IDE" type="PIIX4" PortCount="2" useHostIOCache="true" Bootable="true">
