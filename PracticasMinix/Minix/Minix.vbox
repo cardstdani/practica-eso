@@ -6,7 +6,7 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.virtualbox.org/" version="1.19-windows">
-  <Machine uuid="{8e0555f0-eea2-485a-aa4c-3ae5be9c44b1}" name="Minix" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-04-20T09:17:09Z">
+  <Machine uuid="{8e0555f0-eea2-485a-aa4c-3ae5be9c44b1}" name="Minix" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-04-21T16:13:35Z">
     <MediaRegistry>
       <HardDisks>
         <HardDisk uuid="{5f388da3-949d-4be6-be01-f138c651b388}" location="C:/Users/danie/Desktop/practica-eso/PracticasMinix/minix2.0.0.vdi" format="VDI" type="Normal"/>
@@ -17,7 +17,7 @@
     </MediaRegistry>
     <ExtraData>
       <ExtraDataItem name="GUI/LastCloseAction" value="PowerOff"/>
-      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="1022,338,720,440"/>
+      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="1140,451,720,440"/>
     </ExtraData>
     <Hardware>
       <CPU>
@@ -51,7 +51,7 @@
       <Clipboard mode="Bidirectional"/>
       <DragAndDrop mode="Bidirectional"/>
       <GuestProperties>
-        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="es_ES" timestamp="1713602626131474800" flags="RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="es_ES" timestamp="1713712008579575300" flags="RDONLYGUEST"/>
       </GuestProperties>
       <StorageControllers>
         <StorageController name="IDE" type="PIIX4" PortCount="2" useHostIOCache="true" Bootable="true">
