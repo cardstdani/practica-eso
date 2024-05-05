@@ -6,7 +6,7 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.virtualbox.org/" version="1.19-windows">
-  <Machine uuid="{8e0555f0-eea2-485a-aa4c-3ae5be9c44b1}" name="Minix" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-05-04T12:39:46Z">
+  <Machine uuid="{8e0555f0-eea2-485a-aa4c-3ae5be9c44b1}" name="Minix" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-05-05T12:46:01Z">
     <MediaRegistry>
       <HardDisks>
         <HardDisk uuid="{5f388da3-949d-4be6-be01-f138c651b388}" location="C:/Users/danie/Desktop/practica-eso/PracticasMinix/minix2.0.0.vdi" format="VDI" type="Normal"/>
@@ -52,10 +52,10 @@
       <Clipboard mode="Bidirectional"/>
       <DragAndDrop mode="Bidirectional"/>
       <GuestProperties>
-        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="es_ES" timestamp="1714826389447183500" flags="RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxRev" value="162802" timestamp="1714826386591894702" flags="TRANSIENT, RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxVer" value="7.0.16" timestamp="1714826386591894700" flags="TRANSIENT, RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxVerExt" value="7.0.16" timestamp="1714826386591894701" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="es_ES" timestamp="1714913164819506500" flags="RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/VBoxRev" value="162802" timestamp="1714913161979544902" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/VBoxVer" value="7.0.16" timestamp="1714913161979544900" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/VBoxVerExt" value="7.0.16" timestamp="1714913161979544901" flags="TRANSIENT, RDONLYGUEST"/>
       </GuestProperties>
       <StorageControllers>
         <StorageController name="IDE" type="PIIX4" PortCount="2" useHostIOCache="true" Bootable="true">
