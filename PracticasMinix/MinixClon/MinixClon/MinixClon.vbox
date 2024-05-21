@@ -6,7 +6,7 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.virtualbox.org/" version="1.19-windows">
-  <Machine uuid="{b3211f9d-4711-4162-a8b5-d2e298cc06a0}" name="MinixClon" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-05-20T20:04:30Z">
+  <Machine uuid="{b3211f9d-4711-4162-a8b5-d2e298cc06a0}" name="MinixClon" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-05-21T17:21:14Z">
     <MediaRegistry>
       <HardDisks>
         <HardDisk uuid="{fc158733-06bf-49a1-b2e6-06160d56c00e}" location="MinixClon-disk1.vdi" format="VDI" type="Normal"/>
@@ -52,10 +52,7 @@
       <Clipboard mode="Bidirectional"/>
       <DragAndDrop mode="Bidirectional"/>
       <GuestProperties>
-        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="es_ES" timestamp="1716235473338098400" flags="RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxRev" value="162802" timestamp="1716235470488559902" flags="TRANSIENT, RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxVer" value="7.0.16" timestamp="1716235470488559900" flags="TRANSIENT, RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxVerExt" value="7.0.16" timestamp="1716235470488559901" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="es_ES" timestamp="1716309775760019700" flags="RDONLYGUEST"/>
       </GuestProperties>
       <StorageControllers>
         <StorageController name="IDE" type="PIIX4" PortCount="2" useHostIOCache="true" Bootable="true">
